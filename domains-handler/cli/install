@@ -1,0 +1,29 @@
+#!/usr/bin/php
+<?php
+if(isset($argv[1]) && ($argv[1] == '-h' || $argv[1] == '--help')) {
+	$string = 
+///////////////////////////////////////////////////////////////{{{//
+<<<HEREDOC
+Descrition: Tools for create table in database for domains.
+Usage: ./install
+
+HEREDOC;
+///////////////////////////////////////////////////////////////}}}//
+	echo($string);
+	exit(0);
+}
+
+require_once(__DIR__.'/config.php');
+require_once(__DIR__.'/include/class/DB.php');
+require_once(__DIR__.'/include/block/db_init.php');
+require_once(__DIR__.'/include/class/DomainsHandler.php');
+
+$return = DomainsHandler::create_table();
+if(!$return) {//{{{//
+	trigger_error("Can't 'domains' table in database", E_USER_ERROR);
+	exit(255);
+}//}}}//
+
+echo("Create 'domains' table complete\n");
+exit(0);
+

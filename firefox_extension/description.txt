@@ -1,0 +1,239 @@
+Часть 1
+
+Создаём пустое расширение
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension
+
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json
+---[ manifest.json ]------------------------------------------------------------
+{
+	"manifest_version": 2
+	,"name": "Extension template"
+	,"version": "1.0"
+
+	,"description": "Template of firefox extension with basis functions"
+
+	,"icons": {
+		"48": "icons/icon-48.png"
+	}
+}
+--------------------------------------------------------------------------------
+
+В firefox -> about:debugging -> This Firefox -> Load Temporary Add-on.. -> manifest.json -> Inspect -> Console, Disable always on top
+
+
+Добавим основной скрипт (background)
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/background
+
+---[ manifest.json ]------------------------------------------------------------
+...
+	,"background": {
+		"scripts": ["background.js"]
+	}
+}
+--------------------------------------------------------------------------------
+
+---[ background.js ]------------------------------------------------------------
+console.log("Background script completed");
+--------------------------------------------------------------------------------
+
+В firefox -> about:debugging#/runtime/this-firefox -> Extension template -> Reload
+Смотрим в Console
+
+
+Добавим кнопку на toolbar firefox
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action
+
+---[ manifest.json ]------------------------------------------------------------
+...
+	,"browser_action": {
+		"default_icon": {
+			"16": "icons/icon16.png"
+			,"32": "icons/icon32.png"
+		}
+		,"default_title": "Template button"
+	}
+}
+--------------------------------------------------------------------------------
+
+В firefox -> about:debugging#/runtime/this-firefox -> Extension template -> Reload
+На toolbar firefox жмём кнопку Extension -> Extension template (шестерёнка) -> Pin to Toolbar
+
+
+Добавим реакцию на кнопку
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction/onClicked
+
+---[ background.js ]------------------------------------------------------------
+...
+function onClickBrowserAction($tab, $OnClickData)
+{
+	console.log("Browser action button clicked", $tab, $OnClickData);
+}
+browser.browserAction.onClicked.addListener(onClickBrowserAction)
+--------------------------------------------------------------------------------
+
+В firefox -> about:debugging#/runtime/this-firefox -> Extension template -> Reload
+На toolbar firefox жмём кнопку Extension template (нашу)
+Смотрим в Console
+
+
+Добавим управляющую страницу откроем её по нажатию на кнопку
+
+В начале нужно получить url расширения
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/getURL
+
+---[ background.js ]------------------------------------------------------------
+...
+function openControlPage()
+{
+	let $url = browser.runtime.getURL("page/index.html");
+	console.log("Control page url", $url);
+}
+function onClickBrowserAction($tab, $OnClickData)
+{
+	openControlPage();
+...
+--------------------------------------------------------------------------------
+
+Откроем новый таб с полученным урлом
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create
+
+---[ background.js ]------------------------------------------------------------
+...
+async function openControlPage()
+{
+	let $url = browser.runtime.getURL("page/index.html");
+	console.log("Control page url", $url);
+	
+	let $createProperties = {
+		"url": $url	
+	};
+	
+	let $Tab = await browser.tabs.create($createProperties);
+	console.log("Tab object", $Tab);
+}
+...
+--------------------------------------------------------------------------------
+
+---[ index.html ]---------------------------------------------------------------
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Test page</title>
+		<style>
+		</style>
+	</head>
+	<body>
+Test page
+	</body>
+</html>
+--------------------------------------------------------------------------------
+
+Сделаем сохранение и распечатку
+https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
+
+---[ index.html ]---------------------------------------------------------------
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Test page</title>
+		<script src="script.js"></script>
+	</head>
+	<body>
+		<textarea>
+My data here
+		</textarea><br />
+		<button name="save">Save</button>
+		<button name="load">Load</button>
+		<button name="print">Print</button>
+	</body>
+</html>
+--------------------------------------------------------------------------------
+
+---[ script.js ]----------------------------------------------------------------
+var $textarea = null;
+
+function save()
+{
+	let $value = $textarea.value;
+	localStorage.setItem("textarea", $value);
+}
+
+function load()
+{
+	$value = localStorage.getItem("textarea");
+	$textarea.value = $value;
+}
+
+function print()
+{
+	let $value = $textarea.value;
+	document.body.innerText = $value;
+}
+
+function windowOnLoad(event)
+{
+	$textarea = document.querySelector("textarea");
+
+	let $element = null;
+	
+	$element = document.querySelector("button[name='save']");
+	$element.addEventListener("click", save);
+
+	$element = document.querySelector("button[name='load']");
+	$element.addEventListener("click", load);
+	
+	$element = document.querySelector("button[name='print']");
+	$element.addEventListener("click", print);
+}
+window.addEventListener("load", windowOnLoad);
+--------------------------------------------------------------------------------
+
+Часть 2
+
+Создадим расширение которое - загружает страницу https://duckduckgo.com/, отправляет поисковый запрос, парсит выдачу и печатает ссылки в консоль.
+
+Возьмём расширение из предыдущей части и настроим оставив минимум
+- manifest.json -
+{
+	"manifest_version": 2
+	,"name": "Extension template"
+	,"version": "1.0"
+
+	,"description": "Template of firefox extension with basis functions"
+
+	,"icons": {
+		"48": "icons/icon-48.png"
+	}
+	
+	,"background": {
+		"scripts": ["background.js"]
+	}
+	
+	,"browser_action": {
+		"default_icon": {
+			"16": "icons/icon16.png"
+			,"32": "icons/icon32.png"
+		}
+		,"default_title": "Template button"
+	}
+}
+----
+- background.js -
+function onClickBrowserAction($tab, $OnClickData)
+{
+}
+browser.browserAction.onClicked.addListener(onClickBrowserAction)
+----
+
+Добавим открытие таба с https://duckduckgo.com/ и дождёмся загрузки страницы
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/executeScript
+
+- manifest.json -
+...
+	,"permissions": [
+		"*://duckduckgo.com/*"
+	]
+----
+

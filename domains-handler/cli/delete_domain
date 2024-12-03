@@ -1,0 +1,43 @@
+#!/usr/bin/php
+<?php
+if(isset($argv[1]) && ($argv[1] == '-h' || $argv[1] == '--help')) {
+	$string = 
+///////////////////////////////////////////////////////////////{{{//
+<<<HEREDOC
+Descrition: Tools for delete certificate, zone and database item for domain.
+Usage: ./delete_domain <domain>
+
+HEREDOC;
+///////////////////////////////////////////////////////////////}}}//
+	echo($string);
+	exit(0);
+}
+
+$return = is_string($argv[1]);
+if(!$return) {//{{{//
+	trigger_error("Incorrect string 'domain' passed from command line", E_USER_WARNING);
+	return(false);
+}//}}}//
+$domain = $argv[1];
+
+require_once(__DIR__.'/../config.php');
+require_once(__DIR__.'/../include/DB.php');
+require_once(__DIR__.'/../include/db_init.php');
+require_once(__DIR__.'/../include/DomainsHandler.php');
+
+$DomainsHandler = new DomainsHandler();
+$return = $DomainsHandler->set_domain($domain);
+if(!$return) {//{{{//
+	trigger_error("Can't set 'domain' for using", E_USER_ERROR);
+	exit(255);
+}//}}}//
+
+$return = $DomainsHandler->delete_domain_data();
+if(!$return) {//{{{//
+	trigger_error("Can't delete 'domain' data", E_USER_ERROR);
+	exit(255);
+}//}}}//
+
+echo("Delete 'domain' data complete\n");
+exit(0);
+

@@ -1,0 +1,116 @@
+@font-face {
+	font-family: 'rubik-bold';
+	src: url('rubik-bold.woff2');
+}
+@font-face {
+	font-family: 'rubik';
+	src: url('rubik.woff2');
+}
+
+div[name="subscription_widget"] { 
+	all: unset; 
+	div, button, img, span {
+		all: unset;
+	}
+	
+	display: none;
+	div {
+		display: block;
+	}
+	
+	position: fixed;
+	bottom: 0px;
+	right : 0px;
+	
+	max-width: 350px;
+	height: 449px;
+	
+/*	border: solid 1px white; */
+	
+	@media (max-height: 480px) {
+		max-width: 580px;
+		height: 280px;
+	}
+	
+	button[name="close"] {
+		border: none;
+		background-color: transparent;
+		padding: 0px;
+		img { 
+			all: unset;
+			width: 28px;
+			height: 28px;
+			filter: drop-shadow(0px 0px 3px #DDD);
+		}
+	}
+	
+	div[name="invitation"] { all: unset;
+	
+		display: block;
+		position: relative;
+		top: -8px;
+		margin-left: 26px;
+		margin-right: 20px;
+		
+		div[name="head"] { 
+		
+			background-image: url("background.svg");
+			background-position: top right;
+			background-repeat: no-repeat;
+			background-color: #383d45;
+			border-radius: 10px 30px 0px 0px;
+			
+			div[name="title"] {
+				font-family: 'rubik-bold';
+				font-size: 18px; 
+				padding: 20px;
+				color: #EEE;
+				}
+			
+			filter: drop-shadow(0px 0px 10px #222);
+		}
+		
+		div[name="main"] {
+			background: #FFF;
+			
+			div[name="text"] {
+				padding: 20px;
+				font-family: 'rubik';
+				font-size: 16px; 
+				line-height: 22px;
+				color: #383d45;
+			}
+					
+			div[name="button"] {
+				display: flex;
+				width: 100%;
+				height: 200px;
+				align-items: center;
+				justify-content: center;
+				
+				button {
+					padding: 12px 30px 10px 30px;
+					background: #FFF;
+					color: #18c139;
+					border: solid 2px #18c139;
+					border-radius: 25px;
+					font-family: 'rubik-bold';
+					font-size: 16px; 
+				}
+				button:active {
+					background: #18c139;
+					color: #FFF;
+				}
+			}
+			@media (max-height: 480px) {
+				div[name="button"] {
+					height: 70px;
+				}
+			}
+		}
+	}
+	a {
+		text-decoration: none;
+	}
+}
+

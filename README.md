@@ -1,2 +1,2 @@
 # portfolio
-Tasks solved for money
+Portfolio with projects completed as a freelancer.

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+/usr/bin/systemctl stop nginx
+/usr/bin/systemctl stop apache2
+/usr/bin/certbot renew
+/usr/bin/systemctl start nginx
+/usr/bin/systemctl start apache2
+
