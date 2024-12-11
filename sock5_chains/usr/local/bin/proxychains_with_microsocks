@@ -1,0 +1,101 @@
+#!/bin/sh
+
+# initialization block {{{
+
+FILE=`/usr/bin/realpath $0`
+DIR=`/usr/bin/dirname ${FILE}`
+BASENAME=`basename ${FILE}`
+
+ERROR=0
+
+TTY=`/usr/bin/tty`
+if test $? -ne 0
+then
+	TTY=""
+fi
+
+export HOME='/var/www'
+
+# }}}
+
+# help block {{{
+HELP="
+Description: Start, stop incoming socks5 proxy in the proxy chains
+Usage: ./${BASENAME} <start|stop>
+"
+
+if test -z "${1}" -o "${1}" = "-h" -o "${1}" = "--help"
+then
+	echo "${HELP}"
+	exit 0
+fi
+# }}}
+
+# notice_echo function {{{
+notice_echo () 
+{
+	if test -z "${TTY}"
+	then
+		logger -p user.notice -t "${BASENAME}" "${1}"
+	else
+		echo  "\nNOTICE\t${BASENAME}: ${1}"
+	fi
+}
+# }}}
+
+# error_echo function {{{
+error_echo () 
+{
+	if test -z "${TTY}"
+	then
+		logger -p user.err -t "${BASENAME}" "${1}"
+	else 
+		echo  "\nERROR\t${BASENAME}: ${1}" >&2
+	fi
+}
+# }}}
+
+# start function {{{
+start ()
+{
+	. "${HOME}/.microsocks/microsocks.conf"
+	COMMAND="/usr/bin/proxychains /usr/bin/microsocks -u ${MICROSOCKS_USER} -P ${MICROSOCKS_PASSWORD}"
+	notice_echo "${COMMAND}"
+	$COMMAND
+}
+# }}}
+
+# stop function {{{
+stop ()
+{
+	COMMAND="/usr/bin/killall -SIGTERM microsocks"
+	notice_echo "${COMMAND}"
+	$COMMAND
+}
+# }}}
+
+# routing block {{{
+case "${1}" in
+	start)
+		start
+		if test -z "${TTY}"
+		then
+			/usr/bin/systemd-notify --ready --status="privoxy with microsocks started"
+		fi
+		;;
+	stop)
+		stop
+		if test -z "${TTY}"
+		then
+			/usr/bin/systemd-notify --ready --status="privoxy with microsocks stoped"
+		fi
+		;; 
+	*)
+		error_echo "incorrect command line argument"
+		exit 255
+		;;
+esac
+# }}}
+
+exit 0
+

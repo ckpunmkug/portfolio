@@ -1,0 +1,13 @@
+[Unit]
+Description=Proxychains with microsocks
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/local/bin/proxychains_with_microsocks start
+ExecStop=/usr/local/bin/proxychains_with_microsocks stop
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,3 @@
+www-data ALL = (root) NOPASSWD: /usr/bin/systemctl start proxychains_with_microsocks
+www-data ALL = (root) NOPASSWD: /usr/bin/systemctl stop proxychains_with_microsocks
+

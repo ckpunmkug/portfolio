@@ -1,0 +1,21 @@
+* {
+	font-family: Sans-Serif;
+	font-size: 16px;
+}
+body {
+}
+fieldset {
+	max-width: min-contents;
+}
+legend {
+}
+label {
+	line-height: 24px;
+}
+input[type='text'] {
+	line-height: 20px;
+}
+button {
+	height: 30px;
+}
+
