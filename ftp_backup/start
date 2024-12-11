@@ -1,0 +1,21 @@
+#!/usr/bin/php
+<?php
+
+set_include_path(__DIR__.'/include');
+require_once(__DIR__.'/config.php');
+require_once('FTPBackup.php');
+require_once('date_to_timestamp.php');
+require_once('main.php');
+
+define('DEBUG', true);
+define('QUIET', false);
+define('VERBOSE', true);
+
+$return = main(__DIR__.'/data');
+if($return === true) {
+	exit(0);
+}
+else {
+	exit(255);
+}
+
