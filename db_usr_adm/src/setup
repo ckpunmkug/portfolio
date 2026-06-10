@@ -1,0 +1,93 @@
+#!/bin/sh
+
+### init
+#{{{
+
+FILE=`/usr/bin/realpath $0`
+DIR=`/usr/bin/dirname ${FILE}`
+BASENAME=`basename ${FILE}`
+
+HELP="
+Description: Setting up databases and users simple administration script
+Usage: ${BASENAME}
+"
+if test "${1}" = "-h" -o "${1}" = "--help"
+then
+	echo "${HELP}"
+	exit 0
+fi
+
+#}}}
+
+### functions
+#{{{
+
+error ()
+{
+	/usr/bin/echo -e -n "\nERROR: ${BASENAME} - ${1}\n" >&2
+	return 255
+}
+
+notice ()
+{
+	/usr/bin/echo -e -n "\nSTAGE: ${1}\n"
+	if test ${?} -ne 0
+	then
+		return 255
+	fi
+	return 0
+}
+
+run ()
+{
+
+	COMMAND="${*}"
+	echo "\n> ${COMMAND}"
+	${COMMAND}
+	if test ${?} -ne 0
+	then
+		error "Running the command failed with an error"
+		exit 255
+	fi
+	return 0
+	
+}
+
+#}}}
+
+if ! true && notice "Template"
+then #{{{
+	echo "Script block template"
+fi #}}}
+
+if  true && notice "install required packages"
+then #{{{
+
+PACKAGE_NAMES="
+	php-cli 
+	php-mysql 
+	whiptail 
+"
+for PACKAGE_NAME in ${PACKAGE_NAMES}
+do
+	dpkg-query --status ${PACKAGE_NAME} 1> /dev/null 2> /dev/null
+	if test ${?} -ne 0
+	then
+		run apt-get -y install ${PACKAGE_NAME}
+	fi
+done
+
+fi #}}}
+
+if  true && notice "create link to tool"
+then #{{{
+
+run ln -s -v ${DIR}/cli/start /usr/local/sbin/db_usr_adm
+
+fi #}}}
+
+notice "installation complete"
+/usr/bin/echo "For remove tool - launch ${DIR}/uninstall"
+
+exit 0
+

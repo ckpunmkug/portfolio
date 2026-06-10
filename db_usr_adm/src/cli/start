@@ -1,0 +1,29 @@
+#!/usr/bin/php
+<?php
+
+ini_set('error_reporting', E_ALL);
+
+$return = realpath(__DIR__.'/..');
+if(!is_string($return)) {
+	trigger_error("Unable to get real path of project root folder", E_USER_ERROR);
+	exit(255);
+}
+define('DIR', $return);
+
+set_include_path(DIR.'/include');
+require('block/initialization.php');
+
+require('class/ArgV.php');
+//require('function/cd.php');
+require('class/Dialog.php');
+
+//require('project/Method.php');
+require('project/main.php');
+
+$return = main($argv);
+if($return !== true) {
+	trigger_error("'main' call failed", E_USER_ERROR);
+	exit(255);
+}
+exit(0);
+

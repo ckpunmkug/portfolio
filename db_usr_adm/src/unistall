@@ -1,0 +1,74 @@
+#!/bin/sh
+
+### init
+#{{{
+
+FILE=`/usr/bin/realpath $0`
+DIR=`/usr/bin/dirname ${FILE}`
+BASENAME=`basename ${FILE}`
+
+HELP="
+Description: Uninstall databases and users simple administration script
+Usage: ${BASENAME}
+"
+if test "${1}" = "-h" -o "${1}" = "--help"
+then
+	echo "${HELP}"
+	exit 0
+fi
+
+#}}}
+
+### functions
+#{{{
+
+error ()
+{
+	/usr/bin/echo -e -n "\nERROR: ${BASENAME} - ${1}\n" >&2
+	return 255
+}
+
+notice ()
+{
+	/usr/bin/echo -e -n "\nSTAGE: ${1}\n"
+	if test ${?} -ne 0
+	then
+		return 255
+	fi
+	return 0
+}
+
+run ()
+{
+
+	COMMAND="${*}"
+	echo "\n> ${COMMAND}"
+	${COMMAND}
+	if test ${?} -ne 0
+	then
+		error "Running the command failed with an error"
+		exit 255
+	fi
+	return 0
+	
+}
+
+#}}}
+
+if ! true && notice "Template"
+then #{{{
+	echo "Script block template"
+fi #}}}
+
+if  true && notice "remove files"
+then #{{{
+
+run rm -v /usr/local/sbin/db_usr_adm
+run rm -v -r "${DIR}"
+
+fi #}}}
+
+notice "Uninstall complete"
+
+exit 0
+

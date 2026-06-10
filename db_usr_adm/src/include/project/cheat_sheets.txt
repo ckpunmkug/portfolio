@@ -1,0 +1,48 @@
+-- Lists the databases
+SHOW DATABASES;
+
+-- Creates a database with the given name
+CREATE DATABASE IF NOT EXISTS database CHARACTER SET utf8;
+
+-- Deletes the database
+DROP DATABASE IF EXISTS database;
+
+-- Lists the users
+SELECT User, Host FROM mysql.user;
+
+-- Create new MySQL account
+CREATE USER IF NOT EXISTS 'user'@'localhost' IDENTIFIED BY 'password';
+
+-- Remove MySQL account
+DROP USER IF EXISTS 'user'@'localhost';
+
+-- Assign privileges to MySQL user account
+GRANT ALL ON database.* TO 'user'@'localhost';
+
+-- Revoke privileges from user account
+REVOKE ALL ON database.* FROM 'user'@'localhost';
+
+-- Modifies MySQL accounts
+ALTER USER 'user'@'localhost' IDENTIFIED BY 'new_password';
+
+-- Lists the tables
+SHOW TABLES;
+
+-- Create table with name
+CREATE TABLE IF NOT EXISTS `table` (
+	id INT AUTO_INCREMENT,
+	integer_number INT,
+	fractional_number FLOAT,
+	large_string LONGBLOB,
+	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Remove table with name
+DROP TABLE IF EXISTS `table`;
+
+# A common use of mysqldump is for making a backup of all databases
+mysqldump --all-databases > backup-file.sql
+
+# Load the dump file back into the server
+mysql < backup-file.sql
+
