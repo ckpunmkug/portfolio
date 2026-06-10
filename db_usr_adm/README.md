@@ -26,4 +26,8 @@ sudo /usr/local/lib/db_usr_adm/uninstall
 ```
 
 ### Функционал
+**Lists the databases** - Вывод списка баз данных<br />
+**Lists the users** - Вывод списка пользователей<br />
+**Lists the tables** - Вывод списка таблиц для базы данных<br />
+
 
