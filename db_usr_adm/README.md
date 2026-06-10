@@ -1,6 +1,8 @@
 ## db_usr_adm - Databases and users simple administration
 Упрощённое управление в MySQL базами данных, пользователями и таблицами.
 
+![picture alt](https://github.com/ckpunmkug/release/blob/main/db_usr_adm/Screenshot.png "Main window")
+
 ### Назначение
 Используется при необходимости создать/удалить пользователя или базу данных, дать/забрать резрешения пользователю, а так же для удаления всех таблиц в базе данных.
 
