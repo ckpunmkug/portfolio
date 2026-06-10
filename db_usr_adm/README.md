@@ -29,5 +29,13 @@ sudo /usr/local/lib/db_usr_adm/uninstall
 **Lists the databases** - Вывод списка баз данных<br />
 **Lists the users** - Вывод списка пользователей<br />
 **Lists the tables** - Вывод списка таблиц для базы данных<br />
-
+**CREATE DATABASE** - Создать базу данных<br />
+**CREATE USER** - Создать пользователя<br />
+**GRANT ALL ON** - Выдать пользователю разрешение на всё с базой данных<br />
+**REVOKE ALL ON** - Забрать у пользователя разрешение на всё с базой данных<br />
+**DROP USER** - Удалить пользователя<br />
+**DROP DATABASE** - Удалить базу данных<br />
+**DELETE ALL TABLES** - Удалить все таблицы в базе данных<br />
+**ALTER USER** - Изменить пароль пользователю<br />
+**CHEAT SHEETS** - Подсказки по основным SQL запросам и CLI командам<br />
 
