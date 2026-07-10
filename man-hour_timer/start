@@ -1,0 +1,328 @@
+#!/usr/bin/php
+<?php
+
+/// Defining path to binary files
+
+define("ffmpeg", "/usr/bin/ffmpeg");
+define("import", "/usr/bin/import");
+define("wmctrl", "/usr/bin/wmctrl");
+define("notify_send", "/usr/bin/notify-send");
+define("mplayer", "/usr/bin/mplayer");
+define("killall", "/usr/bin/killall");
+
+class Args 
+{//{{{
+
+	static $description = "";
+	static $config = [];
+	static $check = true;
+	
+	static function help() 
+	{//{{{
+		$text = "";
+		if (!empty(self::$description))
+			$text .= "\n".self::$description."\n\n";
+		$text .= "Usage: \n";
+		foreach (self::$config as $config) {
+			$text .= "  {$config[0]} {$config[1]}";
+			if ($config[2] !== null) {
+				$text .= " {$config[2]}\t\t{$config[3]}\n";
+			} else {
+				$text .= "\t\t\t{$config[3]}\n";
+			}
+		}
+		echo $text."\n";
+	}//}}}
+	
+	static function apply() 
+	{//{{{
+		self::add();
+		global $argv;
+		array_walk(self::$config, function(array $config, int $index, array $argv) {
+			$c = count($argv);
+			for ($i = 1; $i < $c; $i++) {
+				if ($argv[$i] == $config[0] || $argv[$i] == $config[1]) {
+					if ($config[2] !== null) {
+						if (!isset($argv[($i+1)])) {
+							trigger_error("\"{$config[2]}\" is not set for \"{$config[0]}\" in command line", E_USER_ERROR);
+							exit(255);
+						}
+						$i += 1;
+						self::$config[$index][4]($argv[$i]);
+						return null;
+					} else {
+						self::$config[$index][4]();
+						return null;
+					}
+				}
+			}
+			if (self::$config[$index][5]) {
+				trigger_error("\"{$config[0]}\" is not set in command line", E_USER_ERROR);
+				exit(255);
+			}
+		}, $argv);
+		if (!defined('VERBOSE'))
+			define('VERBOSE', true);
+		if (!defined('DEBUG'))
+			define('DEBUG', false);
+	}//}}}
+	
+	static function add(array $config = []) 
+	{//{{{
+		if (!empty($config)) {
+			array_push(self::$config, $config);
+			return null;
+		}
+		self::add([
+			'-q', '--quiet', null, "Do not output anything", 
+			function() {
+				define('VERBOSE', false);
+			}, false
+		]);
+		self::add([
+			'-d', '--debug', null, "Run in debug mode", 
+			function() {
+				define('DEBUG', true);
+			}, false
+		]);
+		array_unshift(self::$config, [
+			'-h', '--help', null, "Show help text and exit",
+			function() {
+				self::help();
+				exit(0);
+			}, false
+		]);
+	}//}}}
+	
+}//}}}
+
+if(true) // Configuring comandline arguments handler
+{//{{{
+	Args::$description = 'Programmers Timer - "Man-hour"';
+	Args::add([
+		'-s', '--screenshots', 'DIRNAME', "Directory path where to put screenshots", 
+		function(string $dirname) {
+			define('SCREENSHOTS', $dirname);
+			if (!file_exists(import)) {
+				trigger_error(import." not found. Install imagemagick or change path", E_USER_ERROR);
+				self::$check = false;
+			}
+		}, false
+	]);
+	Args::add([
+		'-w', '--workspaces', '0,1,2..N', "Directory path where sources", 
+		function(string $workspaces) {
+			$workspaces = explode(",", $workspaces);
+			foreach ($workspaces as $key => $workspace) {
+				if (ctype_digit($workspace))
+					$workspaces[$key] = intval($workspace);
+				else
+					unset($workspaces[$key]);
+			}
+			define('WORKSPACES', $workspaces);
+			if (!file_exists(wmctrl)) {
+				trigger_error(wmctrl." not found. Install wmctrl or change path", E_USER_ERROR);
+				self::$check = false;
+			}
+		}, false
+	]);
+	Args::add([
+		'-n', '--notify', null, "Notify when the timer ends", 
+		function() {
+			define("NOTIFY", true);
+			if (!file_exists(notify_send)) {
+				trigger_error(notify_send." not found. Install libnotify-bin or change path", E_USER_ERROR);
+				self::$check = false;
+			}
+		}, false
+	]);
+	Args::add([
+		'-b', '--beep', null, "Play ring sound when the timer ends ", 
+		function() {
+			define("BEEP", true);
+			if (!file_exists(mplayer)) {
+				trigger_error(mplayer." not found. Install mplayer or change path", E_USER_ERROR);
+				self::$check = false;
+			}
+		}, false
+	]);
+	Args::add([
+		'-t', '--timer', 'MINUTES', "How much minutes in timer", 
+		function(string $minutes) {
+			define("TIMER", intval($minutes));
+		}, false
+	]);
+	Args::add([
+		'-p', '--pause', 'MINUTES', "How much minutes in pause", 
+		function(string $minutes) {
+			define("PAUSE", intval($minutes));
+		}, false
+	]);
+	Args::add([
+		'-v', '--volume', 'LEVEL', "Volume for beep signal", 
+		function(string $volume) {
+			define("VOLUME", intval($volume));
+		}, false
+	]);
+	Args::add([
+		'-c', '--convert', 'DIRNAME', "Path to the screenshots for convert to video", 
+		function(string $dirname) {
+			if (!file_exists(ffmpeg)) {
+				trigger_error(ffmpeg." not found. Install ffmpeg or change path", E_USER_ERROR);
+				exit(255);
+			}
+			$dirname = rtrim($dirname, '/');
+			$filename = getcwd().'/'.basename($dirname).".mp4";
+			chdir($dirname);
+			$command = ffmpeg." -framerate 1 -pattern_type glob -i '*.png' -c:v libx264 -r 30 -pix_fmt yuv420p '{$filename}'";
+			system($command);
+			exit(0);
+		}, false
+	]);
+	if(Args::$check !== true) exit(255);
+	Args::apply();	
+}//}}}
+
+if(!defined('TIMER')) define("TIMER", 60);
+if(!defined('PAUSE')) define("PAUSE", 10);
+if(!defined('VOLUME')) define("VOLUME", 45);
+
+if (defined('SCREENSHOTS')) // Create directory for screenshots
+{//{{{
+	$cwd = getcwd();
+	if (!chdir(SCREENSHOTS)) {
+		trigger_error("can't change to screnshots dir", E_USER_ERROR);
+		exit(255);
+	}
+	define('DATE', date("Y.m.d-H:i"));
+	if (
+		file_exists(SCREENSHOTS.'/'.DATE) &&
+		is_dir(SCREENSHOTS.'/'.DATE) &&
+		is_writable(SCREENSHOTS.'/'.DATE)
+	)
+		return true;
+	if (!mkdir(SCREENSHOTS.'/'.DATE)) {
+		trigger_error("can't create date directory", E_USER_ERROR);
+		exit(255);
+	}
+}//}}}
+
+function get_current_workspace() 
+{//{{{
+	if(!defined('WORKSPACES')) {
+		return(NULL);
+	}
+	$command = wmctrl." -d";
+	$output = [];
+	$return = 0;
+	exec($command, $output, $return);
+	if ($return != 0) {
+		trigger_error("wmctrl exec error", E_USER_WARNING);
+		return false;
+	}
+	foreach ($output as $string) {
+		if (preg_match('/^(\w+)\s+\*\s+.+$/', $string, $matches) == 1)
+			return intval($matches[1]);
+	}
+	trigger_error("wmctrl can't give workspace");
+	return false;
+}//}}}
+
+function take_screenshot(int $minute) 
+{//{{{
+	if (!defined('SCREENSHOTS'))
+		return true;
+	$filename = sprintf("%02d.png", $minute);
+	$command = import." -window root ".SCREENSHOTS.'/'.DATE."/{$filename}";
+	$return = 0;
+	passthru($command, $return);
+	if ($return != 0) {
+		trigger_error("import can't take screenshot", E_USER_ERROR);
+		exit(255);
+	}
+	return true;
+}//}}}
+
+pcntl_signal(SIGINT, function($signal) 
+{//{{{
+	echo("\nPaused\n");
+	$begin = time();
+	echo("Press Enter to play or write quit : ");
+	$string = fgets(STDIN);
+	$string = trim($string);
+	if ($string == 'quit') {
+		exit(0);
+	}
+	$end = time();
+	global $start;
+	$start += $end-$begin;
+});//}}}
+
+function echo_time(int $minutes, int &$count)
+{//{{{
+
+	$date = date("Y.m.d-H:i");
+	$current_workspace = get_current_workspace();
+	if (
+		is_int($current_workspace) == true
+		&& in_array($current_workspace, WORKSPACES) == false
+	) {
+		$count += 1;
+		echo sprintf("-%02d %s\n", $count, $date);
+	} else {
+		echo sprintf("+%02d %s\n", ($minutes-$count), $date);
+		take_screenshot(($minutes-$count));
+	}
+}//}}}
+
+if(true) // Main while
+{//{{{
+	declare(ticks = 1);
+	$stop = TIMER;
+	$start = time();
+	$minutes=-1;
+	$count = 0;
+	while (true) {
+		$now = time();
+		$result = (($now-$start)-(($now-$start)%60))/60;
+		if ($minutes == -1)
+			$minutes = $result;
+		if ($result != $minutes) {
+			$minutes = $result;
+			echo_time($minutes, $count);
+			if ($minutes == ($stop+$count)) {
+				break;
+			}
+		}
+		sleep(1);
+	}
+}//}}}
+
+if(true) // When timer over
+{//{{{
+
+if (defined("NOTIFY")) {
+	$notify_string = TIMER.' minutes passed';
+	$command = notify_send.' -i '.__DIR__.'/share/image/clock.svg -u critical "'.$notify_string.'"';
+	system($command);
+}
+if (defined("BEEP")) {
+	$command = mplayer.' -msglevel all=0 -quiet -nolirc -volume '.VOLUME.' '.__DIR__.'/share/audio/message.ogg';
+	system($command);
+}
+
+sleep(PAUSE*60);
+
+if (defined("NOTIFY")) {
+	$notify_string = PAUSE.' minutes passed';
+	$command = notify_send.' -i '.__DIR__.'/share/image/clock.svg -u critical "'.$notify_string.'"';
+	system($command);
+}
+if (defined("BEEP")) {
+	$command = mplayer.' -msglevel all=0 -quiet -nolirc -volume '.VOLUME.' '.__DIR__.'/share/audio/message.ogg';
+	system($command);
+}
+
+}//}}}
+
+exit(0);
